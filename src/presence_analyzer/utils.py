@@ -2,11 +2,12 @@
 """
 Helper functions used in views.
 """
-
+import calendar
 import csv
-from json import dumps
-from functools import wraps
+import time
 from datetime import datetime
+from functools import wraps
+from json import dumps
 
 from flask import Response
 
@@ -80,6 +81,29 @@ def group_by_weekday(items):
         start = items[date]['start']
         end = items[date]['end']
         result[date.weekday()].append(interval(start, end))
+    return result
+
+
+def group_by_average_start_end_time(items):
+    """
+    Groups average start and end times by weekday.
+    """
+    buffer = {i: {'start': [], 'end': []} for i in xrange(7)}
+
+    for date in items:
+        start = items[date]['start']
+        end = items[date]['end']
+        buffer[date.weekday()]['start'].append(seconds_since_midnight(start))
+        buffer[date.weekday()]['end'].append(seconds_since_midnight(end))
+
+    for weekday in buffer:
+        buffer[weekday]['start'] = mean(buffer[weekday]['start'])
+        buffer[weekday]['end'] = mean(buffer[weekday]['end'])
+
+    result = []
+    for key in buffer:
+        result.append([key, buffer[key]['start'], buffer[key]['end']])
+
     return result
 
 

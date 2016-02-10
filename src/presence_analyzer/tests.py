@@ -63,14 +63,16 @@ class PresenceAnalyzerViewsTestCase(unittest.TestCase):
         """
         resp = self.client.get('/api/v1/presence_weekday/10')
         received_data = json.loads(resp.data)
-        expected_data = [['Weekday', 'Presence (s)'],
-                         ['Mon', 0],
-                         ['Tue', 30047],
-                         ['Wed', 24465],
-                         ['Thu', 23705],
-                         ['Fri', 0],
-                         ['Sat', 0],
-                         ['Sun', 0]]
+        expected_data = [
+            ['Weekday', 'Presence (s)'],
+            ['Mon', 0],
+            ['Tue', 30047],
+            ['Wed', 24465],
+            ['Thu', 23705],
+            ['Fri', 0],
+            ['Sat', 0],
+            ['Sun', 0]
+        ]
 
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.content_type, 'application/json')
@@ -80,15 +82,38 @@ class PresenceAnalyzerViewsTestCase(unittest.TestCase):
         """
         Tests presence weekday api mean time response.
         """
-        expected_data = [['Mon', 0],
-                         ['Tue', 30047],
-                         ['Wed', 24465],
-                         ['Thu', 23705],
-                         ['Fri', 0],
-                         ['Sat', 0],
-                         ['Sun', 0]]
+        expected_data = [
+            ['Mon', 0],
+            ['Tue', 30047],
+            ['Wed', 24465],
+            ['Thu', 23705],
+            ['Fri', 0],
+            ['Sat', 0],
+            ['Sun', 0]
+        ]
 
         resp = self.client.get('/api/v1/mean_time_weekday/10')
+        received_data = json.loads(resp.data)
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.content_type, 'application/json')
+        self.assertEqual(expected_data, received_data)
+
+    def test_api_average_start_end_time(self):
+        """
+        Tests average start and end time api respone.
+        """
+        expected_data = [
+            ['Mon', 0, 0],
+            ['Tue', 34745.0, 64792.0],
+            ['Wed', 33592.0, 58057.0],
+            ['Thu', 38926.0, 62631.0],
+            ['Fri', 0, 0],
+            ['Sat', 0, 0],
+            ['Sun', 0, 0]
+        ]
+
+        resp = self.client.get('/api/v1/presence_start_end/10')
         received_data = json.loads(resp.data)
 
         self.assertEqual(resp.status_code, 200)
@@ -168,6 +193,25 @@ class PresenceAnalyzerUtilsTestCase(unittest.TestCase):
                                            22984.0, 6426.0, 0, 0])
 
         self.assertEqual(result_from_function, 13631.142857142857)
+
+    def test_average_start_end_times(self):
+        """
+        Test if function returns correct average.
+        """
+        expected_data = [
+            [0, 0, 0],
+            [1, 34745.0, 64792.0],
+            [2, 33592.0, 58057.0],
+            [3, 38926.0, 62631.0],
+            [4, 0, 0],
+            [5, 0, 0],
+            [6, 0, 0]
+        ]
+
+        data = utils.get_data()
+        result_from_function = utils.group_by_average_start_end_time(data[10])
+
+        self.assertEqual(result_from_function, expected_data)
 
 
 def suite():
