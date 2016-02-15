@@ -1,0 +1,44 @@
+{% from "macros.html" import nav_link with context %}
+<!doctype html>
+<html lang=en>
+  <head>
+      <meta charset=utf-8>
+      <title>Presence analyzer</title>
+      <meta name="keywords" content="" />
+      <meta name="description" content=""/>
+      <meta name="author" content="STX Next sp. z o.o."/>
+      <meta name="viewport" content="width=device-width; initial-scale=1.0">
+      <link href={{ url_for('static', filename='css/normalize.css') }} media="all" rel="stylesheet" type="text/css" />
+      <link href={{ url_for('static', filename='css/main_layout.css') }} media="all" rel="stylesheet" type="text/css" />
+      <script src={{ url_for('static', filename='js/jquery.min.js') }}></script>
+      <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+      {% block javascripts %}{% endblock %}
+  </head>
+  <body>
+    <div id="main">
+        <div id="header">
+            <h1>Presence analyzer</h1>
+            <ul>
+                {% block menu %}
+                {{ nav_link('show_data', 'presence_weekday', 'Presence by weekday') }}
+                {{ nav_link('show_data', 'mean_time_weekday', 'Presence mean time') }}
+                {{ nav_link('show_data', 'presence_start_end', 'Presence start-end') }}
+                {% endblock %}
+            </ul>
+        </div>
+        <div id="content">
+            <h2>{% block content_title %}{% endblock %}</h2>
+            <p>
+                <select id="user_id" style="display: none">
+                    <option value="">--</option>
+                </select>
+                <div id="chart_div" style="display: none">
+                </div>
+                <div id="loading">
+                    <img src={{ url_for('static', filename='img/loading.gif') }} />
+                </div>
+            </p>
+        </div>
+    </div>
+  </body>
+</html>

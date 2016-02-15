@@ -5,7 +5,7 @@ Defines views.
 import calendar
 import logging
 
-from flask import abort, redirect
+from flask import abort, redirect, render_template, url_for, make_response
 
 from main import app
 from utils import (
@@ -25,7 +25,7 @@ def mainpage():
     """
     Redirects to front page.
     """
-    return redirect('/static/presence_weekday.html')
+    return redirect(url_for('show_data'))
 
 
 @app.route('/api/v1/users', methods=['GET'])
@@ -98,3 +98,15 @@ def presence_start_end_view(user_id):
     ]
 
     return result
+
+
+@app.route('/show')
+@app.route('/show/<string:template_name>')
+def show_data(template_name='presence_weekday'):
+    """
+    Main view for presenting data bookmarks.
+    """
+    try:
+        return make_response(render_template(template_name + '.html'))
+    except:
+        abort(404)
