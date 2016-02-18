@@ -1,0 +1,7 @@
+{% extends "layout.html" %}
+
+{% block javascripts %}
+<script src={{ url_for('static', filename='js/presence_weekday.js') }}></script>
+{% endblock %}
+
+{% block content_title %} Presence by weekday {% endblock %}
