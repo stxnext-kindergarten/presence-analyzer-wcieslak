@@ -1,9 +1,7 @@
-{% macro nav_link(endpoint, template_name, name) %}
-
-{% if template_name in request.url %}
-    <li id="selected"><a href="{{ url_for(endpoint, template_name=template_name) }}">{{name}}</a></li>
-{% else %}
-    <li><a href="{{ url_for(endpoint, template_name=template_name) }}">{{name}}</a></li>
-{% endif %}
-
-{% endmacro %}
+<%def name="nav_link(endpoint, template_name, name)">
+    % if template_name in request.url:
+        <li id="selected"><a href=${url_for(endpoint, template_name=template_name)}>${name}</a></li>
+    % else:
+        <li><a href=${url_for(endpoint, template_name=template_name)}>${name}</a></li>
+    % endif
+</%def>

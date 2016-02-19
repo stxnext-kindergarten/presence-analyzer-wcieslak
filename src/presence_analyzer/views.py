@@ -5,7 +5,8 @@ Defines views.
 import calendar
 import logging
 
-from flask import abort, redirect, render_template, url_for, make_response
+from flask import abort, redirect, url_for, make_response
+from flask.ext.mako import render_template
 
 from main import app
 from utils import (
