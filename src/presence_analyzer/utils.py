@@ -2,16 +2,16 @@
 """
 Helper functions used in views.
 """
-import calendar
 import csv
-import time
+import time # pylint: disable=W0611
 from datetime import datetime
 from functools import wraps
 from json import dumps
+from lxml import etree
 
-from flask import Response
+from flask import Response # pylint: disable=F0401
 
-from main import app
+from .main import app
 
 import logging
 log = logging.getLogger(__name__)  # pylint: disable=invalid-name
@@ -72,6 +72,37 @@ def get_data():
     return data
 
 
+def assign_ids_to_names_from_xml(data, user=None): # pylint:disable=unused-argument
+    """
+    Parses raw user id's from CSV data file and replaces them
+    with their corresponding full name from xml file.
+    """
+    with open(app.config['DATA_USERS_XML'], 'r') as xmlfile:
+        root = etree.parse(xmlfile) # pylint:disable=no-member
+        server = root.find('server')
+        host = server.find('host').text
+        protocol = server.find('protocol').text
+        port = server.find('port').text
+        users = root.find('users')
+        result = {
+            int(user.get('id')): {
+                'name': user.find('name').text,
+                'image': "{protocol}://{host}:{port}{user_url}".format(
+                    protocol=protocol,
+                    host=host,
+                    port=port,
+                    user_url=user.find('avatar').text
+                )
+            }
+            for user in users
+        }
+
+    if user:
+        return result[user]
+    else:
+        return result
+
+
 def group_by_weekday(items):
     """
     Groups presence entries by weekday.
@@ -88,7 +119,7 @@ def group_by_average_start_end_time(items):
     """
     Groups average start and end times by weekday.
     """
-    buffer = {i: {'start': [], 'end': []} for i in xrange(7)}
+    buffer = {i: {'start': [], 'end': []} for i in xrange(7)} #pylint: disable=redefined-builtin
 
     for date in items:
         start = items[date]['start']
@@ -107,7 +138,7 @@ def group_by_average_start_end_time(items):
     return result
 
 
-def seconds_since_midnight(time):
+def seconds_since_midnight(time): #pylint: disable=redefined-outer-name
     """
     Calculates amount of seconds since midnight.
     """

@@ -4,18 +4,21 @@ Presence analyzer unit tests.
 """
 from __future__ import unicode_literals
 
-import csv
 import datetime
 import json
 import os.path
-import random
 import unittest
 
-import main
-import utils
-import views
+from presence_analyzer import main
+from presence_analyzer import utils
+
 TEST_DATA_CSV = os.path.join(
-    os.path.dirname(__file__), '..', '..', 'runtime', 'data', 'test_data.csv'
+    os.path.dirname(__file__), '..', '..',
+    'runtime', 'data', 'test_data.csv'
+)
+TEST_DATA_XML = os.path.join(
+    os.path.dirname(__file__), '..', '..',
+    'runtime', 'data', 'sample_users.xml'
 )
 
 
@@ -30,6 +33,7 @@ class PresenceAnalyzerViewsTestCase(unittest.TestCase):
         Before each test, set up a environment.
         """
         main.app.config.update({'DATA_CSV': TEST_DATA_CSV})
+        main.app.config.update({'DATA_USERS_XML': TEST_DATA_XML})
         self.client = main.app.test_client()
 
     def tearDown(self):
@@ -44,7 +48,7 @@ class PresenceAnalyzerViewsTestCase(unittest.TestCase):
         """
         resp = self.client.get('/')
         self.assertEqual(resp.status_code, 302)
-        assert resp.headers['Location'].endswith('/presence_weekday.html')
+        assert resp.headers['Location'].endswith('/show/')
 
     def test_api_users(self):
         """
@@ -55,7 +59,9 @@ class PresenceAnalyzerViewsTestCase(unittest.TestCase):
         self.assertEqual(resp.content_type, 'application/json')
         data = json.loads(resp.data)
         self.assertEqual(len(data), 2)
-        self.assertDictEqual(data[0], {u'user_id': 10, u'name': u'User 10'})
+        self.assertDictEqual(data[0], {
+            u'user_id': 10, u'name': u'User 10'
+        })
 
     def test_api_presence_weekday(self):
         """
@@ -212,6 +218,39 @@ class PresenceAnalyzerUtilsTestCase(unittest.TestCase):
         result_from_function = utils.group_by_average_start_end_time(data[10])
 
         self.assertEqual(result_from_function, expected_data)
+
+        def test_all_ids_to_names_xml(self): # pylint: disable=unused-variable
+            """
+            Test multiple ids to names assignment return value
+            """
+            expected_data = [{
+                "10":{
+                    "image":
+                        "https://intranet.stxnext.pl:443/api/images/users/141",
+                    "name": "Adam P."},
+                "11":{
+                    "image":
+                        "https://intranet.stxnext.pl:443/api/images/users/176",
+                    "name": "Adrian K."}
+            }]
+            data = utils.get_data()
+            result_from_function = utils.assign_ids_to_names_from_xml(data)
+
+            self.assertEqual(result_from_function, expected_data)
+
+        def test_single_id_to_names_xml(self): # pylint: disable=unused-variable
+            """
+            Test single id to name assignment return value
+            """
+            expected_data = [{
+                "image": "https://intranet.stxnext.pl:443/api/images/users/176",
+                "name":
+                "Adrian K."
+            }]
+            data = utils.get_data()
+            result_from_function = utils.assign_ids_to_names_from_xml(data, 11)
+
+            self.assertEqual(expected_data, result_from_function)
 
 
 def suite():
