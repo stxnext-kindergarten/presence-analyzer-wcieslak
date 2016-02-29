@@ -7,6 +7,7 @@ import sys
 from functools import partial
 
 import paste.script.command
+import requests
 import werkzeug.script
 
 etc = partial(os.path.join, 'parts', 'etc')
@@ -48,6 +49,14 @@ def make_shell():
     http = app.test_client()
     reqctx = app.test_request_context
     return locals()
+
+
+def update_user_data():
+    """Download user's xml data and updates it."""
+    with requests.get('http://sargo.bolt.stxnext.pl/users.xml') as r:
+        xml_user_file = open(app.config['DATA_USERS_XML'], 'w')
+        xml_user_file.write(r.content)
+        xml_user_file.close()
 
 
 def _serve(action, debug=False, dry_run=False):

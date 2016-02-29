@@ -5,17 +5,17 @@ Defines views.
 import calendar
 import logging
 
-from flask import abort, redirect, url_for, make_response
-from flask.ext.mako import render_template
+from flask import abort, redirect, url_for, make_response # pylint: disable=F0401
+from flask.ext.mako import render_template # pylint: disable=F0401
 
-from main import app
-from utils import (
-        get_data,
-        group_by_average_start_end_time,
-        group_by_weekday,
-        jsonify,
-        mean,
-        seconds_since_midnight
+from .main import app
+from .utils import (
+    assign_ids_to_names_from_xml,
+    get_data,
+    group_by_average_start_end_time,
+    group_by_weekday,
+    jsonify,
+    mean
 )
 
 log = logging.getLogger(__name__)  # pylint: disable=invalid-name
@@ -30,16 +30,16 @@ def mainpage():
 
 
 @app.route('/api/v1/users', methods=['GET'])
+@app.route('/api/v1/users/<int:user_id>', methods=['GET'])
 @jsonify
-def users_view():
+def users_view(user_id=None):
     """
     Users listing for dropdown.
     """
     data = get_data()
-    return [
-        {'user_id': i, 'name': 'User {0}'.format(str(i))}
-        for i in data.keys()
-    ]
+    result = assign_ids_to_names_from_xml(data, user_id)
+
+    return result
 
 
 @app.route('/api/v1/mean_time_weekday/<int:user_id>', methods=['GET'])
@@ -94,8 +94,9 @@ def presence_start_end_view(user_id):
         log.debug('User %s not found!', user_id)
         abort(404)
 
-    result = [[calendar.day_abbr[part[0]], part[1], part[2]]
-               for part in group_by_average_start_end_time(data[user_id])
+    result = [
+        [calendar.day_abbr[part[0]], part[1], part[2]]
+        for part in group_by_average_start_end_time(data[user_id])
     ]
 
     return result
@@ -110,4 +111,4 @@ def show_data(template_name='presence_weekday'):
     try:
         return make_response(render_template(template_name + '.html'))
     except:
-        abort(404)
+        abort(404)#pylint: disable=bare-except
