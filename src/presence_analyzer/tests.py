@@ -11,6 +11,7 @@ import unittest
 
 from presence_analyzer import main
 from presence_analyzer import utils
+from presence_analyzer.helpers import func
 
 TEST_DATA_CSV = os.path.join(
     os.path.dirname(__file__), '..', '..',
@@ -48,7 +49,7 @@ class PresenceAnalyzerViewsTestCase(unittest.TestCase):
         """
         resp = self.client.get('/')
         self.assertEqual(resp.status_code, 302)
-        assert resp.headers['Location'].endswith('/show/')
+        assert resp.headers['Location'].endswith('/show')
 
     def test_api_users(self):
         """
@@ -59,8 +60,9 @@ class PresenceAnalyzerViewsTestCase(unittest.TestCase):
         self.assertEqual(resp.content_type, 'application/json')
         data = json.loads(resp.data)
         self.assertEqual(len(data), 2)
-        self.assertDictEqual(data[0], {
-            u'user_id': 10, u'name': u'User 10'
+        self.assertDictEqual(data['10'], {
+            'image': 'https://intranet.stxnext.pl:443/api/images/users/141',
+            'name': 'Adam P.'
         })
 
     def test_api_presence_weekday(self):
@@ -218,6 +220,18 @@ class PresenceAnalyzerUtilsTestCase(unittest.TestCase):
         result_from_function = utils.group_by_average_start_end_time(data[10])
 
         self.assertEqual(result_from_function, expected_data)
+
+    def test_caching_decorator(self):
+        """
+        Test if caching decorator returns result from cache.
+        """
+        cache_func = utils.cache(600)(func)
+
+        self.assertEqual(cache_func(10), 10)
+        self.assertEqual(cache_func(123), 10)
+
+        utils.STORAGE['func']['TIME'] = 0
+        self.assertEqual(124, cache_func(124))
 
         def test_all_ids_to_names_xml(self): # pylint: disable=unused-variable
             """

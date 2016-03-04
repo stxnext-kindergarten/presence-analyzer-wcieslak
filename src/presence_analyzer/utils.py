@@ -3,6 +3,7 @@
 Helper functions used in views.
 """
 import csv
+import threading
 import time # pylint: disable=W0611
 from datetime import datetime
 from functools import wraps
@@ -16,6 +17,7 @@ from .main import app
 import logging
 log = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
+STORAGE = {}
 
 def jsonify(function):
     """
@@ -33,6 +35,37 @@ def jsonify(function):
     return inner
 
 
+def cache(caching_time):
+    """
+    Caches result of a function for a given period of time.
+    """
+    def decorator(function):
+        @wraps(function)
+        def wrapper(*args, **kwargs):
+            """
+            This docstring will be overridden by @wraps decorator.
+            """
+            lock = threading.Lock()
+            func_name = function.__name__
+
+            with lock:
+                if func_name in STORAGE:
+                    if (time.time() - STORAGE[func_name]['TIME']
+                        <= caching_time):
+                        value = STORAGE[func_name]['DATA']
+                        return value
+
+                STORAGE[func_name] = {
+                    'DATA': function(*args, **kwargs),
+                    'TIME': time.time()
+                }
+
+            return STORAGE[func_name]['DATA']
+        return wrapper
+    return decorator
+
+
+@cache(600)
 def get_data():
     """
     Extracts presence data from CSV file and groups it by user_id.
