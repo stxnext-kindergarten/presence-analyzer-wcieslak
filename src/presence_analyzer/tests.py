@@ -128,6 +128,32 @@ class PresenceAnalyzerViewsTestCase(unittest.TestCase):
         self.assertEqual(resp.content_type, 'application/json')
         self.assertEqual(expected_data, received_data)
 
+    def test_api_average_by_month(self):
+        """
+        Tests average hourly presence by month api response.
+        """
+        expected_data = [
+            ['Jan', []],
+            ['Feb', []],
+            ['Mar', []],
+            ['Apr', []],
+            ['May', []],
+            ['Jun', []],
+            ['Jul', []],
+            ['Aug', []],
+            ['Sep', 20],
+            ['Oct', []],
+            ['Nov', []],
+            ['Dec', []]
+        ]
+
+        resp = self.client.get('/api/v1/average_by_month/10')
+        received_data = json.loads(resp.data)
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.content_type, 'application/json')
+        self.assertEqual(expected_data, received_data)
+
 
 class PresenceAnalyzerUtilsTestCase(unittest.TestCase):
     """
@@ -265,6 +291,17 @@ class PresenceAnalyzerUtilsTestCase(unittest.TestCase):
             result_from_function = utils.assign_ids_to_names_from_xml(data, 11)
 
             self.assertEqual(expected_data, result_from_function)
+
+    def test_average_by_month(self):
+    """
+    Test if function returns correct list of averages.
+    """
+    expected_data = [[], [], [], [], [], [], [], [], 20, [], [], []]
+
+    data = utils.get_data()
+    result_from_function = utils.group_by_average_monthly_hours(data[10])
+
+    self.assertEqual(result_from_function, expected_data)
 
 
 def suite():

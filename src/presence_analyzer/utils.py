@@ -5,6 +5,7 @@ Helper functions used in views.
 import csv
 import threading
 import time # pylint: disable=W0611
+from collections import defaultdict
 from datetime import datetime
 from functools import wraps
 from json import dumps
@@ -51,7 +52,7 @@ def cache(caching_time):
             with lock:
                 if func_name in STORAGE:
                     if (time.time() - STORAGE[func_name]['TIME']
-                        <= caching_time):
+                            <= caching_time):
                         value = STORAGE[func_name]['DATA']
                         return value
 
@@ -136,27 +137,28 @@ def assign_ids_to_names_from_xml(data, user=None): # pylint:disable=unused-argum
         return result
 
 
-def group_by_weekday(items):
+
+def group_by_weekday(user_data):
     """
     Groups presence entries by weekday.
     """
-    result = [[], [], [], [], [], [], []]  # one list for every day in week
-    for date in items:
-        start = items[date]['start']
-        end = items[date]['end']
+    result = [[] for i in xrange(7)]  # one list for every day in week
+    for date in user_data:
+        start = user_data[date]['start']
+        end = user_data[date]['end']
         result[date.weekday()].append(interval(start, end))
     return result
 
 
-def group_by_average_start_end_time(items):
+def group_by_average_start_end_time(user_data):
     """
     Groups average start and end times by weekday.
     """
     buffer = {i: {'start': [], 'end': []} for i in xrange(7)} #pylint: disable=redefined-builtin
 
-    for date in items:
-        start = items[date]['start']
-        end = items[date]['end']
+    for date in user_data:
+        start = user_data[date]['start']
+        end = user_data[date]['end']
         buffer[date.weekday()]['start'].append(seconds_since_midnight(start))
         buffer[date.weekday()]['end'].append(seconds_since_midnight(end))
 
@@ -167,6 +169,30 @@ def group_by_average_start_end_time(items):
     result = []
     for key in buffer:
         result.append([key, buffer[key]['start'], buffer[key]['end']])
+
+    return result
+
+
+def group_by_average_monthly_hours(user_data):
+    """
+    Groups average hours worked per month.
+    """
+    months = defaultdict(lambda: [])
+
+    for day, times in user_data.iteritems():
+        start = seconds_since_midnight(times['start'])
+        end = seconds_since_midnight(times['end'])
+        hours_per_day = (end - start) / 60 / 60
+        months[day.month].append(hours_per_day)
+
+    result = [[] for i in xrange(12)]
+
+    for month, hours in months.iteritems():
+        months_per_interval = len({
+            (day.year, day.month) for day in user_data
+            if day.month == month
+        })
+        result[month - 1] = (sum(hours) / months_per_interval)
 
     return result
 
