@@ -6,7 +6,7 @@ google.load("visualization", "1", {packages:["corechart"], 'language': 'pl'});
         $.getJSON("/api/v1/users", function(result) {
             var dropdown = $("#user_id");
             $.each(result, function(key, value) {
-                dropdown.append($("<option />").val(key).text(value.name));
+                dropdown.append($("<option />").val(value.id).text(value.name));
             });
             dropdown.show();
             loading.hide();

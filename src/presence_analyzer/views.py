@@ -3,6 +3,7 @@
 Defines views.
 """
 import calendar
+import locale
 import logging
 
 from flask import abort, redirect, url_for, make_response # pylint: disable=F0401
@@ -20,7 +21,7 @@ from .utils import (
 )
 
 log = logging.getLogger(__name__)  # pylint: disable=invalid-name
-
+locale.setlocale(locale.LC_COLLATE, "pl_PL.UTF-8")
 
 @app.route('/')
 def mainpage():
@@ -38,7 +39,17 @@ def users_view(user_id=None):
     Users listing for dropdown.
     """
     data = get_data()
-    result = assign_ids_to_names_from_xml(data, user_id)
+    assigned_data = assign_ids_to_names_from_xml(data, user_id)
+    result = []
+
+    if len(assigned_data) == 2: #single user returned
+            return assigned_data
+    else: #transform dict into list so we can sort it with sorted()
+        for k, v in assigned_data.iteritems():
+            v['id'] = k
+            result.append(v)
+
+        result = sorted(result, key=lambda k: k['name'], cmp=locale.strcoll)
 
     return result
 
@@ -115,7 +126,8 @@ def average_by_month_view(user_id):
         abort(404)
 
     result = [
-        [calendar.month_abbr[month_count], number_of_hours]
+        [calendar.month_abbr[month_count],
+        number_of_hours if number_of_hours else 0]
         for month_count, number_of_hours
         in enumerate(group_by_average_monthly_hours(data[user_id]), start=1)
     ]
