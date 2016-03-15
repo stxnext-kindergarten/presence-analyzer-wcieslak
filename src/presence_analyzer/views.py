@@ -13,6 +13,7 @@ from .utils import (
     assign_ids_to_names_from_xml,
     get_data,
     group_by_average_start_end_time,
+    group_by_average_monthly_hours,
     group_by_weekday,
     jsonify,
     mean
@@ -97,6 +98,26 @@ def presence_start_end_view(user_id):
     result = [
         [calendar.day_abbr[part[0]], part[1], part[2]]
         for part in group_by_average_start_end_time(data[user_id])
+    ]
+
+    return result
+
+
+@app.route('/api/v1/average_by_month/<int:user_id>', methods=['GET'])
+@jsonify
+def average_by_month_view(user_id):
+    """
+    Returns average hours worked per month.
+    """
+    data = get_data()
+    if user_id not in data:
+        log.debug('User %s not found!', user_id)
+        abort(404)
+
+    result = [
+        [calendar.month_abbr[month_count], number_of_hours]
+        for month_count, number_of_hours
+        in enumerate(group_by_average_monthly_hours(data[user_id]), start=1)
     ]
 
     return result
