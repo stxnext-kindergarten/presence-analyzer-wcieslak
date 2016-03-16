@@ -126,8 +126,10 @@ def average_by_month_view(user_id):
         abort(404)
 
     result = [
-        [calendar.month_abbr[month_count],
-        number_of_hours if number_of_hours else 0]
+        [
+            calendar.month_abbr[month_count], number_of_hours
+            if number_of_hours else 0
+        ]
         for month_count, number_of_hours
         in enumerate(group_by_average_monthly_hours(data[user_id]), start=1)
     ]

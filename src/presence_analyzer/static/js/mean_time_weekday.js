@@ -15,8 +15,10 @@ google.load("visualization", "1", {packages:["corechart"], 'language': 'pl'});
             var selected_user = $("#user_id").val(),
                 chart_div = $('#chart_div'),
                 avatar_div = $('#avatar'),
-                avatar_img = $('#avatar img');
+                avatar_img = $('#avatar img'),
+                no_data_div = $('#no_data');
             if(selected_user) {
+                no_data_div.hide();
                 loading.show();
                 avatar_div.hide();
                 chart_div.hide();
@@ -41,6 +43,9 @@ google.load("visualization", "1", {packages:["corechart"], 'language': 'pl'});
                     loading.hide();
                     var chart = new google.visualization.ColumnChart(chart_div[0]);
                     chart.draw(data, options);
+                }).fail(function() {
+                    loading.hide();
+                    no_data_div.show();
                 });
             }
         });
